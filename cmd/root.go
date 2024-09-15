@@ -41,8 +41,13 @@ to quickly create a Cobra application.`,
 				fmt.Printf("%s: Is a directory\n", file)
 				break
 			}
-
-			files.Search(file, searchString, true)
+			// if line numbers flag is set
+			lineNumbers, err := cmd.Flags().GetBool("line-numbers")
+			if err != nil {
+				fmt.Println("Error:", err)
+				break
+			}
+			files.Search(file, searchString, lineNumbers)
 		}
 	},
 }
@@ -65,5 +70,5 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().BoolP("line-numbers", "n", false, "Show line numbers")
 }
