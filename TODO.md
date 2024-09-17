@@ -1,8 +1,8 @@
 # TODOS
 
-- [] Handle stdin
-- [] Boyer Moore Algorithm
+- [ ] Handle stdin
+- [ ] Boyer Moore Algorithm
 - Implement more features of grep:
-    - [] select non-matching lines (0v)
-    - [] ignore case (-i)
-    ...
+  - [ ] select non-matching lines (-v)
+  - [ ] ignore case (-i)
+  ...
