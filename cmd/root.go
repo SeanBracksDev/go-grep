@@ -4,6 +4,8 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 
@@ -23,31 +25,53 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	Args: cobra.MinimumNArgs(2),
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		// check if there is somethinig to read from STDIN
 		searchString := args[0]
-		filesToSearch := args[1:]
-		for _, file := range filesToSearch {
-			isDir, err := files.IsDir(file)
-			if err != nil {
-				if os.IsNotExist(err) {
-					fmt.Printf("%s: No such file or directory\n", file)
-				} else {
-					fmt.Println("Error:", err)
+		stat, _ := os.Stdin.Stat()
+		if (stat.Mode() & os.ModeCharDevice) == 0 {
+			var stdin []byte
+			scanner := bufio.NewScanner(os.Stdin)
+			for scanner.Scan() {
+				currentLine := append(scanner.Bytes(), []byte("\n")...)
+				stdin = append(stdin, currentLine...)
+			}
+			if err := scanner.Err(); err != nil {
+				panic(err)
+			}
+			files.SearchStdin(bytes.NewReader(stdin), searchString, false)
+		} else {
+			filesToSearch := args[1:]
+			for _, file := range filesToSearch {
+				isDir, err := files.IsDir(file)
+				if err != nil {
+					if os.IsNotExist(err) {
+						fmt.Printf("%s: No such file or directory\n", file)
+					} else {
+						fmt.Println("Error:", err)
+					}
+					break // TODO Remove break, we want to continue to the next file
 				}
-				break
+				if isDir {
+					fmt.Printf("%s: Is a directory\n", file)
+					break // TODO Remove break, we want to continue to the next file
+				}
+
+				fileReader, err := os.Open(file)
+				if err != nil {
+					fmt.Println("Error:", err)
+					break
+				}
+				defer fileReader.Close()
+				// if line numbers flag is set
+				lineNumbers, err := cmd.Flags().GetBool("line-numbers")
+				if err != nil {
+					fmt.Println("Error:", err)
+					break
+				}
+				files.SearchFile(file, fileReader, searchString, lineNumbers)
 			}
-			if isDir {
-				fmt.Printf("%s: Is a directory\n", file)
-				break
-			}
-			// if line numbers flag is set
-			lineNumbers, err := cmd.Flags().GetBool("line-numbers")
-			if err != nil {
-				fmt.Println("Error:", err)
-				break
-			}
-			files.Search(file, searchString, lineNumbers)
 		}
 	},
 }
