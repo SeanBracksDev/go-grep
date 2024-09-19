@@ -40,7 +40,7 @@ func TestIsDir(t *testing.T) {
 	}
 }
 
-func TestSearch(t *testing.T) {
+func TestSearchFile(t *testing.T) {
 	// ? This doesn't test the color output, not sure how to do that, or if it's even necessary
 	content := "Hello, world!\nThis is a test file.\nHello again!"
 	file, err := os.CreateTemp("", "testfile")
@@ -73,7 +73,13 @@ func TestSearch(t *testing.T) {
 			r, w, _ := os.Pipe()
 			os.Stdout = w
 
-			Search(file.Name(), test.searchString, test.lineNumbers)
+			fileReader, err := os.Open(file.Name())
+			if err != nil {
+				panic(err)
+			}
+			defer fileReader.Close()
+
+			SearchFile(file.Name(), fileReader, test.searchString, test.lineNumbers)
 			w.Close()
 
 			scanner := bufio.NewScanner(r)
