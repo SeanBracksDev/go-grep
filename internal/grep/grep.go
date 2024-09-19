@@ -46,6 +46,7 @@ func SearchFile(filePath string, input io.Reader, searchString string, lineNumbe
 	}
 }
 
+// TODO combine SearchStdin and SearchFile into a single function
 func SearchStdin(input io.Reader, searchString string, lineNumbers bool) {
 	scanner := bufio.NewScanner(input)
 	lineNumber := 1
