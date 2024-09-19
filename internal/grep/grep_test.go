@@ -57,13 +57,13 @@ func TestSearchFile(t *testing.T) {
 
 	tests := []struct {
 		searchString string
-		lineNumbers  bool
 		expected     string
+		opts         []Option
 	}{
-		{"Hello", false, fmt.Sprintf("%s:Hello, world!\n%s:Hello again!\n", tmpFile, tmpFile)},
-		{"Hello", true, fmt.Sprintf("%s:1:Hello, world!\n%s:3:Hello again!\n", tmpFile, tmpFile)},
-		{"test", false, fmt.Sprintf("%s:This is a test file.\n", tmpFile)},
-		{"NotFound", false, ""},
+		{"Hello", fmt.Sprintf("%s:Hello, world!\n%s:Hello again!\n", tmpFile, tmpFile), []Option{}},
+		{"Hello", fmt.Sprintf("%s:1:Hello, world!\n%s:3:Hello again!\n", tmpFile, tmpFile), []Option{WithLineNumbers()}},
+		{"test", fmt.Sprintf("%s:This is a test file.\n", tmpFile), []Option{}},
+		{"NotFound", "", []Option{}},
 	}
 
 	for _, test := range tests {
@@ -79,7 +79,46 @@ func TestSearchFile(t *testing.T) {
 			}
 			defer fileReader.Close()
 
-			SearchFile(file.Name(), fileReader, test.searchString, test.lineNumbers)
+			SearchFile(file.Name(), fileReader, test.searchString, test.opts...)
+			w.Close()
+
+			scanner := bufio.NewScanner(r)
+			for scanner.Scan() {
+				output.WriteString(scanner.Text() + "\n")
+			}
+
+			os.Stdout = old
+
+			if output.String() != test.expected {
+				t.Errorf("Expected: '%v'; Got: '%v'", test.expected, output.String())
+			}
+		})
+	}
+}
+func TestSearchStdin(t *testing.T) {
+	content := "Hello, world!\nThis is a test input.\nHello again!"
+
+	tests := []struct {
+		searchString string
+		expected     string
+		opts         []Option
+	}{
+		{"Hello", "Hello, world!\nHello again!\n", []Option{}},
+		{"Hello", "Hello, world!\nHello again!\n", []Option{}},
+		{"Hello", "1:Hello, world!\n3:Hello again!\n", []Option{WithLineNumbers()}},
+		{"test", "This is a test input.\n", []Option{}},
+		{"NotFound", "", []Option{}},
+	}
+
+	for _, test := range tests {
+		t.Run(test.searchString, func(t *testing.T) {
+			reader := strings.NewReader(content)
+			var output strings.Builder
+			old := os.Stdout
+			r, w, _ := os.Pipe()
+			os.Stdout = w
+
+			SearchStdin(reader, test.searchString, test.opts...)
 			w.Close()
 
 			scanner := bufio.NewScanner(r)

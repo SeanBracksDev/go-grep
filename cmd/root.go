@@ -27,6 +27,16 @@ to quickly create a Cobra application.`,
 	// has an action associated with it:
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		lineNumbers, err := cmd.Flags().GetBool("line-numbers")
+		if err != nil {
+			panic(err)
+		}
+
+		var opts []grep.Option
+		if lineNumbers {
+			opts = append(opts, grep.WithLineNumbers())
+		}
+
 		// check if there is somethinig to read from STDIN
 		searchString := args[0]
 		stat, _ := os.Stdin.Stat()
@@ -40,7 +50,7 @@ to quickly create a Cobra application.`,
 			if err := scanner.Err(); err != nil {
 				panic(err)
 			}
-			grep.SearchStdin(bytes.NewReader(stdin), searchString, false)
+			grep.SearchStdin(bytes.NewReader(stdin), searchString, opts...)
 		} else {
 			filesToSearch := args[1:]
 			for _, file := range filesToSearch {
@@ -64,13 +74,8 @@ to quickly create a Cobra application.`,
 					break
 				}
 				defer fileReader.Close()
-				// if line numbers flag is set
-				lineNumbers, err := cmd.Flags().GetBool("line-numbers")
-				if err != nil {
-					fmt.Println("Error:", err)
-					break
-				}
-				grep.SearchFile(file, fileReader, searchString, lineNumbers)
+
+				grep.SearchFile(file, fileReader, searchString, opts...)
 			}
 		}
 	},
