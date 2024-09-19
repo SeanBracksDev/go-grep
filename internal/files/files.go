@@ -3,6 +3,7 @@ package files
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -26,14 +27,7 @@ func IsDir(path string) (bool, error) {
 	return false, nil
 }
 
-// take a io.Reader and a string to search for
-func Search(filePath, searchString string, lineNumbers bool) {
-	input, err := os.Open(filePath)
-	if err != nil {
-		panic(err)
-	}
-	defer input.Close()
-
+func SearchFile(filePath string, input io.Reader, searchString string, lineNumbers bool) {
 	scanner := bufio.NewScanner(input)
 	lineNumber := 1
 	for scanner.Scan() {
@@ -42,6 +36,24 @@ func Search(filePath, searchString string, lineNumbers bool) {
 			var sb strings.Builder
 			newLine := strings.ReplaceAll(line, searchString, highlightColour(searchString))
 			sb.WriteString(fmt.Sprintf("%s:", fileNameColour(filePath)))
+			if lineNumbers {
+				sb.WriteString(fmt.Sprintf("%s:", lineNumberColour(lineNumber)))
+			}
+			sb.WriteString(newLine)
+			fmt.Println(sb.String())
+		}
+		lineNumber++
+	}
+}
+
+func SearchStdin(input io.Reader, searchString string, lineNumbers bool) {
+	scanner := bufio.NewScanner(input)
+	lineNumber := 1
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Contains(line, searchString) {
+			var sb strings.Builder
+			newLine := strings.ReplaceAll(line, searchString, highlightColour(searchString))
 			if lineNumbers {
 				sb.WriteString(fmt.Sprintf("%s:", lineNumberColour(lineNumber)))
 			}
