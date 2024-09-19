@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/SeanBracksDev/go-grep/internal/files"
+	"github.com/SeanBracksDev/go-grep/internal/grep"
 	"github.com/spf13/cobra"
 )
 
@@ -40,11 +40,11 @@ to quickly create a Cobra application.`,
 			if err := scanner.Err(); err != nil {
 				panic(err)
 			}
-			files.SearchStdin(bytes.NewReader(stdin), searchString, false)
+			grep.SearchStdin(bytes.NewReader(stdin), searchString, false)
 		} else {
 			filesToSearch := args[1:]
 			for _, file := range filesToSearch {
-				isDir, err := files.IsDir(file)
+				isDir, err := grep.IsDir(file)
 				if err != nil {
 					if os.IsNotExist(err) {
 						fmt.Printf("%s: No such file or directory\n", file)
@@ -70,7 +70,7 @@ to quickly create a Cobra application.`,
 					fmt.Println("Error:", err)
 					break
 				}
-				files.SearchFile(file, fileReader, searchString, lineNumbers)
+				grep.SearchFile(file, fileReader, searchString, lineNumbers)
 			}
 		}
 	},
