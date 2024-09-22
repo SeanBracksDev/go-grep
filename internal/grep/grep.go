@@ -94,7 +94,3 @@ func SearchStdin(input io.Reader, searchString string, opts ...Option) {
 		lineNumber++
 	}
 }
-
-func BoyerMooreSearch(input, searchString string) {
-
-}
