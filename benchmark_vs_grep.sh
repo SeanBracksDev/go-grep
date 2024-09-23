@@ -1,0 +1,2 @@
+#!/usr/bin/bash
+(go install && git rev-parse HEAD && date && hyperfine 'grep a dummy_data/*' && hyperfine 'go-grep a dummy_data/*' && echo '===============================') &>> benchmark_vs_grep_stats.log
