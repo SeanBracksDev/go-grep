@@ -61,11 +61,9 @@ to quickly create a Cobra application.`,
 					} else {
 						fmt.Println("Error:", err)
 					}
-					break // TODO Remove break, we want to continue to the next file
 				}
 				if isDir {
 					fmt.Printf("%s: Is a directory\n", file)
-					break // TODO Remove break, we want to continue to the next file
 				}
 
 				fileReader, err := os.Open(file)
