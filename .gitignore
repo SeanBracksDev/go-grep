@@ -27,3 +27,4 @@ go.work.sum
 .vscode
 go-grep
 stats
+benchmark_vs_grep_stats.log
