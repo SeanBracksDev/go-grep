@@ -50,7 +50,7 @@ to quickly create a Cobra application.`,
 			if err := scanner.Err(); err != nil {
 				panic(err)
 			}
-			grep.Search(bytes.NewReader(stdin), searchString, opts...)
+			grep.Search(bytes.NewReader(stdin), []byte(searchString), opts...)
 		} else {
 			filesToSearch := args[1:]
 			for _, file := range filesToSearch {
@@ -73,7 +73,7 @@ to quickly create a Cobra application.`,
 				}
 				defer fileReader.Close()
 
-				grep.Search(fileReader, searchString, append(opts, grep.WithFilePath(file))...)
+				grep.Search(fileReader, []byte(searchString), append(opts, grep.WithFilePath(file))...)
 			}
 		}
 	},

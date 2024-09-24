@@ -2,18 +2,13 @@ package grep
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
-	"github.com/fatih/color"
-)
-
-var (
-	fileNameColour   = color.New(color.FgBlue).SprintFunc()
-	highlightColour  = color.New(color.FgRed).SprintFunc()
-	lineNumberColour = color.New(color.FgGreen).SprintFunc()
+	"github.com/SeanBracksDev/go-grep/internal/colour"
 )
 
 type Options struct {
@@ -49,7 +44,7 @@ func IsDir(path string) (bool, error) {
 	return false, nil
 }
 
-func Search(input io.Reader, searchString string, opts ...Option) {
+func Search(input io.Reader, searchString []byte, opts ...Option) {
 	var options Options
 	for _, opt := range opts {
 		err := opt(&options)
@@ -61,18 +56,19 @@ func Search(input io.Reader, searchString string, opts ...Option) {
 	scanner := bufio.NewScanner(input)
 	lineNumber := 1
 	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.Contains(line, searchString) {
+		line := scanner.Bytes()
+		if bytes.Contains(line, searchString) {
 			var sb strings.Builder
-			newLine := strings.ReplaceAll(line, searchString, highlightColour(searchString))
 
 			if options.filePath != nil && *options.filePath != "" {
-				sb.WriteString(fmt.Sprintf("%s:", fileNameColour(*options.filePath)))
+				sb.Write(colour.Colour(*options.filePath, colour.Blue))
+				sb.WriteByte(58)
 			}
 			if options.lineNumbers != nil && *options.lineNumbers {
-				sb.WriteString(fmt.Sprintf("%s:", lineNumberColour(lineNumber)))
+				sb.Write(colour.Colour(lineNumber, colour.Green))
+				sb.WriteByte(58)
 			}
-			sb.WriteString(newLine)
+			sb.Write(bytes.ReplaceAll(line, searchString, colour.Colour(searchString, colour.Red))) // ? this is pretty expensive, is there a better way?
 			fmt.Println(sb.String())
 		}
 		lineNumber++
