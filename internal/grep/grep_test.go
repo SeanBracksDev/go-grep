@@ -60,9 +60,9 @@ func TestSearchFile(t *testing.T) {
 		expected     string
 		opts         []Option
 	}{
-		{"Hello", fmt.Sprintf("%s:Hello, world!\n%s:Hello again!\n", tmpFile, tmpFile), []Option{}},
-		{"Hello", fmt.Sprintf("%s:1:Hello, world!\n%s:3:Hello again!\n", tmpFile, tmpFile), []Option{WithLineNumbers()}},
-		{"test", fmt.Sprintf("%s:This is a test file.\n", tmpFile), []Option{}},
+		{"Hello", fmt.Sprintf("%s:Hello, world!\n%s:Hello again!\n", tmpFile, tmpFile), []Option{WithFilePath(tmpFile)}},
+		{"Hello", fmt.Sprintf("%s:1:Hello, world!\n%s:3:Hello again!\n", tmpFile, tmpFile), []Option{WithLineNumbers(), WithFilePath(tmpFile)}},
+		{"test", fmt.Sprintf("%s:This is a test file.\n", tmpFile), []Option{WithFilePath(tmpFile)}},
 		{"NotFound", "", []Option{}},
 	}
 
@@ -79,7 +79,7 @@ func TestSearchFile(t *testing.T) {
 			}
 			defer fileReader.Close()
 
-			SearchFile(file.Name(), fileReader, test.searchString, test.opts...)
+			Search(fileReader, test.searchString, test.opts...)
 			w.Close()
 
 			scanner := bufio.NewScanner(r)
@@ -118,7 +118,7 @@ func TestSearchStdin(t *testing.T) {
 			r, w, _ := os.Pipe()
 			os.Stdout = w
 
-			SearchStdin(reader, test.searchString, test.opts...)
+			Search(reader, test.searchString, test.opts...)
 			w.Close()
 
 			scanner := bufio.NewScanner(r)
