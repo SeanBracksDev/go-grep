@@ -134,3 +134,5 @@ func TestSearchStdin(t *testing.T) {
 		})
 	}
 }
+
+// ? TODO tests for grepping multiple files/inputs ?
