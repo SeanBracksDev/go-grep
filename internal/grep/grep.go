@@ -18,6 +18,7 @@ var (
 
 type Options struct {
 	lineNumbers *bool
+	filePath    *string
 }
 
 type Option func(options *Options) error
@@ -26,6 +27,13 @@ func WithLineNumbers() Option {
 	return func(options *Options) error {
 		withLineNumbers := true
 		options.lineNumbers = &withLineNumbers
+		return nil
+	}
+}
+
+func WithFilePath(filePath string) Option {
+	return func(options *Options) error {
+		options.filePath = &filePath
 		return nil
 	}
 }
@@ -41,7 +49,7 @@ func IsDir(path string) (bool, error) {
 	return false, nil
 }
 
-func SearchFile(filePath string, input io.Reader, searchString string, opts ...Option) {
+func Search(input io.Reader, searchString string, opts ...Option) {
 	var options Options
 	for _, opt := range opts {
 		err := opt(&options)
@@ -57,34 +65,10 @@ func SearchFile(filePath string, input io.Reader, searchString string, opts ...O
 		if strings.Contains(line, searchString) {
 			var sb strings.Builder
 			newLine := strings.ReplaceAll(line, searchString, highlightColour(searchString))
-			sb.WriteString(fmt.Sprintf("%s:", fileNameColour(filePath)))
-			if options.lineNumbers != nil && *options.lineNumbers {
-				sb.WriteString(fmt.Sprintf("%s:", lineNumberColour(lineNumber)))
+
+			if options.filePath != nil && *options.filePath != "" {
+				sb.WriteString(fmt.Sprintf("%s:", fileNameColour(*options.filePath)))
 			}
-			sb.WriteString(newLine)
-			fmt.Println(sb.String())
-		}
-		lineNumber++
-	}
-}
-
-// TODO combine SearchStdin and SearchFile into a single function
-func SearchStdin(input io.Reader, searchString string, opts ...Option) {
-	var options Options
-	for _, opt := range opts {
-		err := opt(&options)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	scanner := bufio.NewScanner(input)
-	lineNumber := 1
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.Contains(line, searchString) {
-			var sb strings.Builder
-			newLine := strings.ReplaceAll(line, searchString, highlightColour(searchString))
 			if options.lineNumbers != nil && *options.lineNumbers {
 				sb.WriteString(fmt.Sprintf("%s:", lineNumberColour(lineNumber)))
 			}
